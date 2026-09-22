@@ -61,9 +61,10 @@ const BelajarExplorer = (() => {
   /* ------------------------------- Util kartu ------------------------------- */
 
   function renderCards(container, emptyEl, items, opts) {
-    // opts: { getLabel, getIcon, onOpen, onRename, onDelete }
+    // opts: { getLabel, getIcon, onOpen, onRename, onDelete, emptyText }
     container.innerHTML = "";
     if (!items.length) {
+      emptyEl.textContent = opts.emptyText || "Belum ada apa-apa di sini.";
       emptyEl.style.display = "block";
       container.appendChild(emptyEl);
       return;
@@ -133,6 +134,7 @@ const BelajarExplorer = (() => {
         getLabel: j => j.name,
         getIcon: j => j.icon || "📁",
         onOpen: openJurusan,
+        emptyText: "Belum ada jurusan. Yuk tambah yang pertama.",
         onRename: async (j) => {
           const name = window.prompt("Nama baru untuk jurusan ini:", j.name);
           if (!name || !name.trim()) return;
@@ -222,6 +224,7 @@ const BelajarExplorer = (() => {
         getLabel: l => l.title,
         getIcon: () => "🗂️",
         onOpen: openLevel,
+        emptyText: "Belum ada level di jurusan ini. Yuk tambah satu.",
         onRename: async (l) => {
           const title = window.prompt("Judul baru untuk level ini:", l.title);
           if (!title || !title.trim()) return;
@@ -309,6 +312,7 @@ const BelajarExplorer = (() => {
         getLabel: f => f.name,
         getIcon: () => "📄",
         onOpen: openFolder,
+        emptyText: "Belum ada folder pelajaran di level ini. Yuk tambah satu.",
         onRename: async (f) => {
           const name = window.prompt("Nama baru untuk folder pelajaran ini:", f.name);
           if (!name || !name.trim()) return;
