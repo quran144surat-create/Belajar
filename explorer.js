@@ -13,6 +13,15 @@ const BelajarExplorer = (() => {
     currentFolder: null,  // {id, name}
   };
 
+  // Cache sementara di memori (hilang saat refresh halaman) supaya navigasi
+  // bolak-balik antar folder terasa instan: data lama ditampilkan dulu,
+  // lalu diperbarui diam-diam di belakang layar (stale-while-revalidate).
+  const cache = {
+    jurusan: null,
+    levelByJurusan: {},
+    folderByLevel: {},
+  };
+
   const el = {
     jurusanGrid: document.getElementById("jurusanGrid"),
     jurusanEmpty: document.getElementById("jurusanEmpty"),
@@ -100,12 +109,26 @@ const BelajarExplorer = (() => {
   /* -------------------------------- Jurusan --------------------------------- */
 
   async function refreshJurusan() {
-    window.BelajarSetSync("sending");
-    el.jurusanEmpty.textContent = "Memuat…";
+    // Tampilkan data cache dulu (kalau ada) supaya terasa instan.
+    if (cache.jurusan) {
+      renderJurusanList(cache.jurusan);
+    } else {
+      window.BelajarSetSync("sending");
+      el.jurusanEmpty.textContent = "Memuat…";
+    }
     try {
       const items = await BelajarData.listJurusan();
+      cache.jurusan = items;
       window.BelajarSetSync("synced");
-      renderCards(el.jurusanGrid, el.jurusanEmpty, items, {
+      renderJurusanList(items);
+    } catch (err) {
+      window.BelajarSetSync("error");
+      if (!cache.jurusan) el.jurusanEmpty.textContent = "Gagal memuat jurusan. Coba tarik ulang halaman.";
+    }
+  }
+
+  function renderJurusanList(items) {
+    renderCards(el.jurusanGrid, el.jurusanEmpty, items, {
         getLabel: j => j.name,
         getIcon: j => j.icon || "📁",
         onOpen: openJurusan,
@@ -133,10 +156,6 @@ const BelajarExplorer = (() => {
           }
         },
       });
-    } catch (err) {
-      window.BelajarSetSync("error");
-      el.jurusanEmpty.textContent = "Gagal memuat jurusan. Coba tarik ulang halaman.";
-    }
   }
 
   function openJurusan(jurusan) {
@@ -179,12 +198,26 @@ const BelajarExplorer = (() => {
 
   async function refreshLevel() {
     if (!state.currentJurusan) return;
-    window.BelajarSetSync("sending");
-    el.levelEmpty.textContent = "Memuat…";
+    const jId = state.currentJurusan.id;
+    if (cache.levelByJurusan[jId]) {
+      renderLevelList(cache.levelByJurusan[jId]);
+    } else {
+      window.BelajarSetSync("sending");
+      el.levelEmpty.textContent = "Memuat…";
+    }
     try {
-      const items = await BelajarData.listLevel(state.currentJurusan.id);
+      const items = await BelajarData.listLevel(jId);
+      cache.levelByJurusan[jId] = items;
       window.BelajarSetSync("synced");
-      renderCards(el.levelGrid, el.levelEmpty, items, {
+      renderLevelList(items);
+    } catch {
+      window.BelajarSetSync("error");
+      if (!cache.levelByJurusan[jId]) el.levelEmpty.textContent = "Gagal memuat level. Coba tarik ulang halaman.";
+    }
+  }
+
+  function renderLevelList(items) {
+    renderCards(el.levelGrid, el.levelEmpty, items, {
         getLabel: l => l.title,
         getIcon: () => "🗂️",
         onOpen: openLevel,
@@ -212,10 +245,6 @@ const BelajarExplorer = (() => {
           }
         },
       });
-    } catch {
-      window.BelajarSetSync("error");
-      el.levelEmpty.textContent = "Gagal memuat level. Coba tarik ulang halaman.";
-    }
   }
 
   function openLevel(level) {
@@ -256,12 +285,26 @@ const BelajarExplorer = (() => {
 
   async function refreshFolder() {
     if (!state.currentLevel) return;
-    window.BelajarSetSync("sending");
-    el.folderEmpty.textContent = "Memuat…";
+    const lId = state.currentLevel.id;
+    if (cache.folderByLevel[lId]) {
+      renderFolderList(cache.folderByLevel[lId]);
+    } else {
+      window.BelajarSetSync("sending");
+      el.folderEmpty.textContent = "Memuat…";
+    }
     try {
-      const items = await BelajarData.listFolder(state.currentLevel.id);
+      const items = await BelajarData.listFolder(lId);
+      cache.folderByLevel[lId] = items;
       window.BelajarSetSync("synced");
-      renderCards(el.folderGrid, el.folderEmpty, items, {
+      renderFolderList(items);
+    } catch {
+      window.BelajarSetSync("error");
+      if (!cache.folderByLevel[lId]) el.folderEmpty.textContent = "Gagal memuat folder. Coba tarik ulang halaman.";
+    }
+  }
+
+  function renderFolderList(items) {
+    renderCards(el.folderGrid, el.folderEmpty, items, {
         getLabel: f => f.name,
         getIcon: () => "📄",
         onOpen: openFolder,
@@ -289,10 +332,6 @@ const BelajarExplorer = (() => {
           }
         },
       });
-    } catch {
-      window.BelajarSetSync("error");
-      el.folderEmpty.textContent = "Gagal memuat folder. Coba tarik ulang halaman.";
-    }
   }
 
   function openFolder(folder) {
