@@ -228,8 +228,7 @@
 
   /* --------------------------------- Logout ---------------------------------- */
   els.logoutBtn.addEventListener("click", () => {
-    BelajarStorage.clearScriptUrl();
-    BelajarStorage.clearProfile();
+    BelajarStorage.clearAll();
     els.scriptUrlInput.value = "";
     setLoginStatus("", "");
     showView("login");

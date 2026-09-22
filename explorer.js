@@ -17,7 +17,7 @@ const BelajarExplorer = (() => {
   // bolak-balik antar folder terasa instan: data lama ditampilkan dulu,
   // lalu diperbarui diam-diam di belakang layar (stale-while-revalidate).
   const cache = {
-    jurusan: null,
+    jurusan: BelajarStorage.getJurusanCache(), // langsung terisi kalau pernah tersimpan
     levelByJurusan: {},
     folderByLevel: {},
   };
@@ -119,6 +119,7 @@ const BelajarExplorer = (() => {
     try {
       const items = await BelajarData.listJurusan();
       cache.jurusan = items;
+      BelajarStorage.setJurusanCache(items);
       window.BelajarSetSync("synced");
       renderJurusanList(items);
     } catch (err) {

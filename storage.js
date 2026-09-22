@@ -11,6 +11,7 @@ const BelajarStorage = (() => {
     theme: "belajar:theme",
     scriptUrl: "belajar:scriptUrl",
     profile: "belajar:profile", // { name, firstLoginAt, lastLoginAt }
+    jurusanCache: "belajar:cache:jurusan",
   };
 
   function safeGet(key) {
@@ -74,9 +75,25 @@ const BelajarStorage = (() => {
       safeRemove(KEYS.profile);
     },
 
+    // Cache daftar Jurusan agar terasa instan saat app dibuka ulang —
+    // ditampilkan dulu sebagai data sementara, lalu disegarkan dari server.
+    getJurusanCache() {
+      const raw = safeGet(KEYS.jurusanCache);
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    },
+    setJurusanCache(items) {
+      safeSet(KEYS.jurusanCache, JSON.stringify(items));
+    },
+
     clearAll() {
       safeRemove(KEYS.scriptUrl);
       safeRemove(KEYS.profile);
+      safeRemove(KEYS.jurusanCache);
       // Tema sengaja tidak dihapus saat logout — preferensi tampilan tetap.
     },
   };
