@@ -13,6 +13,7 @@
 
     viewLogin: document.getElementById("view-login"),
     viewDashboard: document.getElementById("view-dashboard"),
+    allViews: document.querySelectorAll(".view"),
 
     scriptUrlInput: document.getElementById("scriptUrlInput"),
     connectBtn: document.getElementById("connectBtn"),
@@ -64,15 +65,20 @@
     els.syncBadge.dataset.status = status;
     els.syncLabel.textContent = labels[status] || status;
   }
+  window.BelajarSetSync = setSyncStatus;
 
   window.addEventListener("online", () => setSyncStatus("synced"));
   window.addEventListener("offline", () => setSyncStatus("offline"));
 
   /* -------------------------------- Navigasi -------------------------------- */
+  // name cocok dengan akhiran id, misal "login" -> #view-login, "inside-folder" -> #view-inside-folder
   function showView(name) {
-    els.viewLogin.classList.toggle("is-active", name === "login");
-    els.viewDashboard.classList.toggle("is-active", name === "dashboard");
+    els.allViews.forEach(view => {
+      view.classList.toggle("is-active", view.id === "view-" + name);
+    });
+    window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
   }
+  window.BelajarShowView = showView;
 
   /* ------------------------------ Panel code.gs ------------------------------ */
   els.toggleSetup.addEventListener("click", () => {
@@ -163,6 +169,7 @@
       setLoginStatus("Berhasil tersambung!", "success");
       renderGreeting(profile);
       showView("dashboard");
+      if (window.BelajarExplorer) window.BelajarExplorer.refreshJurusan();
 
       if (!profile.name) {
         openNameEdit();
@@ -240,6 +247,7 @@
       els.scriptUrlInput.value = savedUrl;
       renderGreeting(savedProfile);
       showView("dashboard");
+      if (window.BelajarExplorer) window.BelajarExplorer.refreshJurusan();
     } else {
       showView("login");
     }
