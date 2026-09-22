@@ -371,5 +371,7 @@ const BelajarExplorer = (() => {
     }
   });
 
-  return { refreshJurusan };
+  const publicApi = { refreshJurusan };
+  window.BelajarExplorer = publicApi;
+  return publicApi;
 })();
